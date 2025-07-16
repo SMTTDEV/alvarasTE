@@ -165,7 +165,7 @@
 
 <body>
 
-    <h4>Pesquisar por Alvará</h4>
+    <h4>Pesquisar por Ponto</h4>
 
     <div style="margin-bottom: 15px;">
         <label style="margin-right: 15px;">
@@ -181,7 +181,8 @@
     <div class="search-container">
         <input type="text" id="searchField" placeholder="Digite o número do alvará">
         <button onclick="filterTable()" id="searchButton"
-            style="margin-left: 10px; padding: 10px 15px; background-color: #004a98; color: white; border: none; border-radius: 5px; cursor: pointer;"> Pesquisar
+            style="margin-left: 10px; padding: 10px 15px; background-color: #004a98; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Pesquisar
         </button>
     </div>
 
@@ -190,7 +191,7 @@
         <table id="resultTable">
             <thead>
                 <tr>
-                    <th>N° do Alvará</th>
+                    <th>N° do Ponto</th>
                     <th>Veículo</th>
                     <th>Situação</th>
                 </tr>
@@ -268,6 +269,14 @@
         function filterTable() {
             const input = document.getElementById("searchField").value.trim();
             const selectedTipo = document.querySelector('input[name="tipoServico"]:checked').value;
+
+            // Mapeamento de texto para número do tipo
+            const tipoMap = {
+                "Táxi": "1",
+                "Transporte Escolar": "2"
+            };
+
+            const tipoNumerico = tipoMap[selectedTipo];
             const tableContainer = document.getElementById("tableContainer");
             const tableBody = document.querySelector("#resultTable tbody");
 
@@ -277,7 +286,7 @@
             }
 
             const filtered = veiculosData.filter(item =>
-                item.ponto && item.ponto.trim() === input && item.tipo === selectedTipo
+                item.ponto && item.ponto.trim() === input && item.tipo === tipoNumerico
             );
 
             tableBody.innerHTML = "";
@@ -297,6 +306,7 @@
                 tableContainer.style.display = "none";
             }
         }
+
 
         // Escutar tecla Enter no campo
         document.addEventListener("DOMContentLoaded", function () {
