@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,9 +11,9 @@
 
     <style>
         body {
-            font-family: 'Arial', sans-serif;          
+            font-family: 'Arial', sans-serif;
             padding: 0px;
-            background-color:  #ffffff;
+            background-color: #ffffff;
         }
 
         h4 {
@@ -29,12 +30,12 @@
         }
 
         .search-container input {
-            width: 35%;
+            width: 15%;
             padding: 10px 15px;
             border: 2px solid #8a8a8a;
             border-radius: 5px;
             font-size: 1.0em;
-            outline: none;           
+            outline: none;
         }
 
         .search-container input:focus {
@@ -43,7 +44,8 @@
 
         .search-container .fa-search {
             position: absolute;
-            right: 20px; /* Coloca o ícone mais à direita dentro do campo */
+            right: 20px;
+            /* Coloca o ícone mais à direita dentro do campo */
             top: 50%;
             transform: translateY(-50%);
             color: #004a98;
@@ -51,9 +53,10 @@
         }
 
         .table-container {
-            width: 100%;           
-            padding-bottom: 15px;            
-            display: none; /* A tabela está oculta inicialmente */
+            width: 100%;
+            padding-bottom: 15px;
+            display: none;
+            /* A tabela está oculta inicialmente */
         }
 
         table {
@@ -61,10 +64,11 @@
             border-collapse: collapse;
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
-            overflow: hidden;            
+            overflow: hidden;
         }
 
-        th, td {
+        th,
+        td {
             padding: 12px;
             text-align: left;
             font-size: 1.0em;
@@ -84,7 +88,7 @@
         }
 
         .accordion {
-            background-color:#004a98;
+            background-color: #004a98;
             color: white;
             cursor: pointer;
             padding: 15px;
@@ -157,13 +161,29 @@
         }
     </style>
 </head>
+
 <body>
 
     <h4>Pesquisar por Alvará</h4>
-    
-    <div class="search-container">
-        <input type="text" id="searchField" placeholder="Digite o número do alvará" oninput="filterTable()">       
+
+    <div style="margin-bottom: 15px;">
+        <label style="margin-right: 15px;">
+            <input type="radio" name="tipoServico" value="Táxi" checked>
+            Táxi
+        </label>
+        <label>
+            <input type="radio" name="tipoServico" value="Transporte Escolar">
+            Transporte Escolar
+        </label>
     </div>
+
+    <div class="search-container">
+        <input type="text" id="searchField" placeholder="Digite o número do alvará">
+        <button onclick="filterTable()" id="searchButton"
+            style="margin-left: 10px; padding: 10px 15px; background-color: #004a98; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            <i class="fas fa-search"></i> Pesquisar
+        </button>
+    </div>    
 
     <!-- Tabela de resultados -->
     <div class="table-container" id="tableContainer">
@@ -176,27 +196,13 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>12345</td>
-                    <td>Taxi A</td>
-                    <td>Ativo</td>
-                </tr>
-                <tr>
-                    <td>67890</td>
-                    <td>Taxi B</td>
-                    <td>Suspenso</td>
-                </tr>
-                <tr>
-                    <td>54321</td>
-                    <td>Taxi C</td>
-                    <td>Ativo</td>
-                </tr>
+
             </tbody>
         </table>
     </div>
-    
+
     <h4>Confira as portarias</h4>
-    <!-- Acordeões --> 
+    <!-- Acordeões -->
 
     <button class="accordion">
         Portaria
@@ -231,46 +237,78 @@
         </ul>
     </div>
 
+    <!-- PapaParse para ler CSV -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
     <script>
-        // Filtra a tabela com base no número do alvará
-        function filterTable() {
-            var input, filter, table, tr, td, i, txtValue;
-            input = document.getElementById("searchField");
-            filter = input.value.toUpperCase();
-            table = document.getElementById("resultTable");
-            tr = table.getElementsByTagName("tr");
+        let veiculosData = [];
 
-            // Exibe ou oculta a tabela dependendo da pesquisa
-            var tableContainer = document.getElementById("tableContainer");
-            tableContainer.style.display = filter ? "block" : "none";
-
-            for (i = 1; i < tr.length; i++) {
-                td = tr[i].getElementsByTagName("td")[0];
-                if (td) {
-                    txtValue = td.textContent || td.innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = "";
-                    } else {
-                        tr[i].style.display = "none";
-                    }
+        // Carrega o CSV
+        document.addEventListener("DOMContentLoaded", function () {
+            Papa.parse("dados.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function (results) {
+                    veiculosData = results.data;
                 }
+            });
+
+            // Acordeões
+            const acc = document.getElementsByClassName("accordion");
+            for (let i = 0; i < acc.length; i++) {
+                acc[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    const panel = this.nextElementSibling;
+                    panel.style.display = (panel.style.display === "block") ? "none" : "block";
+                });
+            }
+        });
+
+        function filterTable() {
+            const input = document.getElementById("searchField").value.trim();
+            const selectedTipo = document.querySelector('input[name="tipoServico"]:checked').value;
+            const tableContainer = document.getElementById("tableContainer");
+            const tableBody = document.querySelector("#resultTable tbody");
+
+            if (input === "") {
+                tableContainer.style.display = "none";
+                return;
+            }
+
+            const filtered = veiculosData.filter(item =>
+                item.ponto && item.ponto.trim() === input && item.tipo === selectedTipo
+            );
+
+            tableBody.innerHTML = "";
+
+            if (filtered.length > 0) {
+                filtered.forEach(item => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                <td>${item.ponto}</td>
+                <td>${item.veic}</td>
+                <td>${item.situacao}</td>
+            `;
+                    tableBody.appendChild(row);
+                });
+                tableContainer.style.display = "block";
+            } else {
+                tableContainer.style.display = "none";
             }
         }
 
-        // Função para abrir/fechar os acordeões
-        var acc = document.getElementsByClassName("accordion");
-        for (var i = 0; i < acc.length; i++) {
-            acc[i].addEventListener("click", function() {
-                this.classList.toggle("active");
-                var panel = this.nextElementSibling;
-                if (panel.style.display === "block") {
-                    panel.style.display = "none";
-                } else {
-                    panel.style.display = "block";
+        // Escutar tecla Enter no campo
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("searchField").addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    filterTable();
                 }
             });
-        }
+        });
+
     </script>
 
 </body>
+
 </html>
