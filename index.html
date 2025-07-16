@@ -88,24 +88,29 @@
         }
 
         .accordion {
-            background-color: #004a98;
-            color: white;
+            background-color: #f5f5f5;
+            color: #333;
             cursor: pointer;
-            padding: 15px;
+            padding: 14px 20px;
             width: 100%;
             text-align: left;
-            border: none;
-            font-size: 1.1em;
-            border-radius: 5px;
+            border: 1px solid #006bde61;
+            font-size: 1rem;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: background-color 0.3s;
-            margin-top: 20px;
+            transition: background-color 0.25s, box-shadow 0.25s;
+            margin-top: 16px;
         }
 
         .accordion:hover {
-            background-color: #0063cc;
+            background-color: #eaeaea;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .accordion.active {
+            background-color: #c5c5c5;
         }
 
         .accordion i {
@@ -155,10 +160,6 @@
             font-size: 1.2em;
             color: #e63946;
         }
-
-        .accordion.active {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 
@@ -180,10 +181,9 @@
     <div class="search-container">
         <input type="text" id="searchField" placeholder="Digite o número do alvará">
         <button onclick="filterTable()" id="searchButton"
-            style="margin-left: 10px; padding: 10px 15px; background-color: #004a98; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            <i class="fas fa-search"></i> Pesquisar
+            style="margin-left: 10px; padding: 10px 15px; background-color: #004a98; color: white; border: none; border-radius: 5px; cursor: pointer;"> Pesquisar
         </button>
-    </div>    
+    </div>
 
     <!-- Tabela de resultados -->
     <div class="table-container" id="tableContainer">
