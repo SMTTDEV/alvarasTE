@@ -242,18 +242,30 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <script>
+        const API_KEY = 'AIzaSyDjlmzKxGxlq1x_wGczYBGXwiO5l36zu2A';
+        const SHEET_ID = '1-G_eKzNF4c0pfOuUu7Ofn20jV92HJ2zkxO8dVIh72Qw';
+        const RANGE = 'A1:Z9000';
         let veiculosData = [];
 
-        // Carrega o CSV
+        // Carrega dados da planilha via API
         document.addEventListener("DOMContentLoaded", function () {
-            Papa.parse("dados.CSV", {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function (results) {
-                    veiculosData = results.data;
-                }
-            });
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const [header, ...rows] = data.values;
+                    veiculosData = rows.map(row => {
+                        const obj = Object.fromEntries(
+                            header.map((key, i) => [key.trim().toLowerCase(), (row[i] || '').toString().trim()])
+                        );
+                        return obj;
+                    });
+
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar dados da planilha:", error);
+                });
 
             // Acordeões
             const acc = document.getElementsByClassName("accordion");
@@ -264,52 +276,8 @@
                     panel.style.display = (panel.style.display === "block") ? "none" : "block";
                 });
             }
-        });
 
-        function filterTable() {
-            const input = document.getElementById("searchField").value.trim();
-            const selectedTipo = document.querySelector('input[name="tipoServico"]:checked').value;
-
-            // Mapeamento de texto para número do tipo
-            const tipoMap = {
-                "Táxi": "1",
-                "Transporte Escolar": "2"
-            };
-
-            const tipoNumerico = tipoMap[selectedTipo];
-            const tableContainer = document.getElementById("tableContainer");
-            const tableBody = document.querySelector("#resultTable tbody");
-
-            if (input === "") {
-                tableContainer.style.display = "none";
-                return;
-            }
-
-            const filtered = veiculosData.filter(item =>
-                item.ponto && item.ponto.trim() === input && item.tipo === tipoNumerico
-            );
-
-            tableBody.innerHTML = "";
-
-            if (filtered.length > 0) {
-                filtered.forEach(item => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                <td>${item.ponto}</td>
-                <td>${item.veic}</td>
-                <td>${item.situacao}</td>
-            `;
-                    tableBody.appendChild(row);
-                });
-                tableContainer.style.display = "block";
-            } else {
-                tableContainer.style.display = "none";
-            }
-        }
-
-
-        // Escutar tecla Enter no campo
-        document.addEventListener("DOMContentLoaded", function () {
+            // Escutar tecla Enter no campo
             document.getElementById("searchField").addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
                     filterTable();
@@ -317,8 +285,79 @@
             });
         });
 
-    </script>
+        function filterTable() {
+            carregarDados(() => {
+                const input = document.getElementById("searchField").value.trim();
+                const selectedTipo = document.querySelector('input[name="tipoServico"]:checked').value;
 
+                const tipoMap = {
+                    "Táxi": "1",
+                    "Transporte Escolar": "2"
+                };
+
+                const tipoNumerico = tipoMap[selectedTipo];
+                const tableContainer = document.getElementById("tableContainer");
+                const tableBody = document.querySelector("#resultTable tbody");
+
+                if (input === "") {
+                    tableContainer.style.display = "none";
+                    return;
+                }
+
+                const filtered = veiculosData.filter(item => {
+                    const ponto = String(item.ponto || "").trim();
+                    const tipo = String(item.tipo || "").trim();
+                    return tipo === tipoNumerico && ponto === input;
+                });
+
+                tableBody.innerHTML = "";
+
+                if (filtered.length > 0) {
+                    filtered.forEach(item => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                    <td>${item.ponto}</td>
+                    <td>${item.veic}</td>
+                    <td>${item.situacao}</td>
+                `;
+                        tableBody.appendChild(row);
+                    });
+                    tableContainer.style.display = "block";
+                } else {
+                    tableContainer.style.display = "none";
+                    alert("Nenhum resultado encontrado para esse tipo e número de ponto.");
+                }
+            });
+        }
+
+
+
+        function carregarDados(callback) {
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const [header, ...rows] = data.values;
+                    veiculosData = rows.map(row => {
+                        const obj = Object.fromEntries(
+                            header.map((key, i) => [key.trim().toLowerCase(), (row[i] || '').toString().trim()])
+                        );
+                        return obj;
+                    });
+
+                    console.log("Dados atualizados do Google Sheets.");
+
+                    if (typeof callback === "function") {
+                        callback(); // executa a função depois de carregar
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar dados da planilha:", error);
+                });
+        }
+
+    </script>
 </body>
 
 </html>
