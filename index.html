@@ -160,18 +160,46 @@
             font-size: 1.2em;
             color: #e63946;
         }
+
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .print-button {
+            background: none;
+            border: none;
+            color: #004a98;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .print-button:hover {
+            color: #002d61;
+        }
     </style>
 </head>
 
 <body>
 
-    <h4>Pesquisar por Ponto</h4>
+    <div class="header-container">
+        <h4>Pesquisar por Ponto</h4>
+        <button class="print-button" onclick="printSection()" title="Imprimir">
+            <i class="fas fa-print"></i>
+        </button>
+    </div>
 
-  <p style="margin-top: 15px; font-style: italic; color: #555;">
-    <strong>Observação:</strong> As informações apresentadas podem levar até 24 horas para serem atualizadas após a regularização junto à SMTT. 
-      Para garantir que os dados foram devidamente processados, recomendamos que o usuário realize nova consulta após 24 horas.
-</p>
-    
+    <p style="margin-top: 15px; font-style: italic; color: #555;">
+        <strong>Observação:</strong> As informações apresentadas podem levar até 24 horas para serem atualizadas após a
+        regularização junto à SMTT. Para garantir que os dados foram devidamente processados, recomendamos que o usuário
+        realize a consulta mais de uma vez, especialmente no dia seguinte à regularização.
+    </p>
+
+
     <div style="margin-bottom: 15px;">
         <label style="margin-right: 15px;">
             <input type="radio" name="tipoServico" value="Táxi" checked>
@@ -199,6 +227,7 @@
                     <th>N° do Ponto</th>
                     <th>Veículo</th>
                     <th>Situação</th>
+                    <th>Data/Hora da Consulta</th> <!-- NOVA COLUNA -->
                 </tr>
             </thead>
             <tbody>
@@ -318,12 +347,15 @@
                 tableBody.innerHTML = "";
 
                 if (filtered.length > 0) {
+                    const now = new Date();
+                    const dataHoraAtual = now.toLocaleString('pt-BR'); // ex: 21/07/2025 14:30:45
                     filtered.forEach(item => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
                     <td>${item.ponto}</td>
                     <td>${item.veic}</td>
                     <td>${item.situacao}</td>
+                    <td>${dataHoraAtual}</td> <!-- NOVA COLUNA -->
                 `;
                         tableBody.appendChild(row);
                     });
@@ -334,8 +366,6 @@
                 }
             });
         }
-
-
 
         function carregarDados(callback) {
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
@@ -360,6 +390,25 @@
                 .catch(error => {
                     console.error("Erro ao carregar dados da planilha:", error);
                 });
+        }
+
+        function printSection() {
+            const tableVisible = document.getElementById("tableContainer").style.display === "block";
+
+            if (tableVisible) {
+                const printContent = document.getElementById("tableContainer").innerHTML;
+                const originalContent = document.body.innerHTML;
+
+                document.body.innerHTML = `
+            <h2>Resultado da Consulta</h2>
+            ${printContent}
+        `;
+                window.print();
+                document.body.innerHTML = originalContent;
+                location.reload(); // recarrega o script e o estilo após impressão
+            } else {
+                window.print(); // imprime a página inteira caso não tenha resultado ainda
+            }
         }
 
     </script>
